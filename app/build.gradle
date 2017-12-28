@@ -1,0 +1,96 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion '26.0.2'
+    defaultConfig {
+        applicationId "onairm.com.gradlepackage"
+        minSdkVersion 15
+        targetSdkVersion 26
+        versionCode 200
+        versionName "2.0.0"
+//        flavorDimensions "versionCode"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    configurations.all {
+        resolutionStrategy.force 'com.google.code.findbugs:jsr305:1.3.9'
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+    //签名信息
+    signingConfigs {
+        release {
+            v1SigningEnabled true
+            v2SigningEnabled false
+            storeFile file("easaa_useinterface.keystore")
+            storePassword "easaa.com"
+            keyAlias "easaa.keystore"
+            keyPassword "easaa.com"
+        }
+    }
+
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            //指定apk名字
+            applicationVariants.all { variant ->
+                if (variant.buildType.name.equals('release')) {
+                    variant.outputs.each { output ->
+                        def outputFile = output.outputFile
+                        if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                            // 输出apk名称为test_v1.0_2015-01-15_wandoujia.apk
+                            def fileName = "DM_${variant.productFlavors[0].name}_${defaultConfig.versionName}.apk"
+                            output.outputFile = new File(outputFile.parent, fileName)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    //指定，有多少种渠道
+    productFlavors {
+        YstenJS {
+            applicationId "onairm.com.gradlepackage1"
+            //这是生成正式站、测试站两种app包用的
+             //manifestPlaceholders = [app_name:"xxxx" ,icon: "@mipmap/ic_launcher_xxxx"]
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: name,app_name:"YstenJS"]
+            // resValue("string" , "baseUrl","xxxxxxx")
+             /*android:label="${app_name}"
+             android:icon="${icon}"
+             value=context.getResource().getString(R.string.key)*/
+        }
+        dangbei {
+            applicationId "onairm.com.gradlepackage2"
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: name,app_name:"dangbei"]
+        }
+        damai {
+            applicationId "onairm.com.gradlepackage3"
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: name,app_name:"damai"]
+        }
+
+        /*productFlavors.all {
+            flavor -> flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
+        }*/
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:26.0.2'
+}
